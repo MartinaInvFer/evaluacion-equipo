@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Resultado de Evaluación</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    body {
+      font-family: Times New Roman;
+      background-color: #0033a0;
+      color: white;
+      margin: 30px;
+    }
+
+    h1 {
+      color: white;
+      text-align: center;
+    }
+
+    #resultado {
+      background-color: #fff;
+      color: black;
+      padding: 20px;
+      border: 2px solid white;
+      border-radius: 10px;
+      max-width: 600px;
+    }
+
+    #resultado ul {
+      color: black;
+    }
+
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: white;
+      color: #0033a0;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #e0e0e0;
+    }
+  </style>
+</head>
+<body>
+  <h1>Resultado de la Evaluación</h1>
+  <div id="resultado"></div>
+  <button onclick="generarPDF()">Abrir como PDF</button>
+
+  <script>
+    const datos = JSON.parse(localStorage.getItem("respuestasEvaluacion"));
+
+    if (!datos) {
+      document.getElementById("resultado").innerHTML = 
+        "⚠️ <strong>No hay datos guardados para evaluar.</strong>";
+      throw new Error("No hay datos para evaluar.");
+    }
+
+    if (datos.funcional === undefined || datos.funcional === null) {
+      document.getElementById("resultado").innerHTML =
+        "⚠️ <strong>Debe confirmar que el equipo fue dado de baja para continuar con la evaluación.</strong>";
+      throw new Error("Campo 'funcional' inválido.");
+    }
+
+    let total = 0;
+    total += parseInt(datos.baja || 0);
+    total += parseInt(datos.funcional || 0);
+    total += parseInt(datos.vida || 0);
+    total += parseInt(datos.costo || 0);
+    total += parseInt(datos.refacciones || 0);
+    total += parseInt(datos.demanda || 0);
+    total += parseInt(datos.soporte || 0);
+
+    let recomendacion = "";
+    if (total >= 20) {
+      recomendacion = "✅ Vender a tercero especializado. El equipo tiene alto valor y condiciones para su reutilización directa.";
+    } else if (total >= 13) {
+      recomendacion = "🔧 Vender como refacciones. Aunque no está en óptimas condiciones, puede aprovecharse por partes.";
+    } else {
+      recomendacion = "❌ No recomendable para venta. El equipo no cumple con las condiciones mínimas para venta segura o rentable.";
+    }
+
+    const mensajeHTML = `
+      <p><strong>Puntaje total:</strong> ${total}/25</p>
+      <p><strong>Recomendación:</strong> ${recomendacion}</p>
+      <ul>
+        <li>Funcionalidad: ${datos.funcional}</li>
+        <li>Vida útil: ${datos.vida}</li>
+        <li>Costo de reparación: ${datos.costo}</li>
+        <li>Refacciones disponibles: ${datos.refacciones}</li>
+        <li>Demanda en mercado: ${datos.demanda}</li>
+        <li>Soporte documental: ${datos.soporte}</li>
+        <li>Historial de mantenimiento: ${datos.mantenimiento}</li>
+      </ul>
+    `;
+
+    document.getElementById("resultado").innerHTML = mensajeHTML;
+
+    async function generarPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+
+      let y = 10;
+      doc.setFont("Times", "normal");
+      doc.setFontSize(14);
+      doc.text("Resultado de la Evaluación", 105, y, { align: "center" });
+      y += 10;
+
+      doc.setFontSize(12);
+      doc.text(`Puntaje total: ${total}/25`, 10, y); y += 10;
+      doc.text(`Recomendación:`, 10, y); y += 10;
+
+      // Dividir recomendación larga
+      const splitText = doc.splitTextToSize(recomendacion, 180);
+      doc.text(splitText, 10, y); y += splitText.length * 10;
+
+      const detalles = [
+        `Funcionalidad: ${datos.funcional}`,
+        `Vida útil: ${datos.vida}`,
+        `Costo de reparación: ${datos.costo}`,
+        `Refacciones disponibles: ${datos.refacciones}`,
+        `Demanda en mercado: ${datos.demanda}`,
+        `Soporte documental: ${datos.soporte}`,
+        `Historial de mantenimiento: ${datos.mantenimiento}`,
+      ];
+
+      detalles.forEach(item => {
+        doc.text(item, 10, y);
+        y += 10;
+      });
+
+      // Abrir el PDF en nueva pestaña
+      window.open(doc.output("bloburl"), "_blank");
+    }
+
+    window.generarPDF = generarPDF;
+  </script>
+</body>
+</html>
