@@ -19,11 +19,14 @@
 
     #resultado {
       background-color: #fff;
+      font-size: 20px;
       color: black;
       padding: 20px;
       border: 2px solid white;
       border-radius: 10px;
       max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
     }
 
     #resultado ul {
@@ -33,7 +36,7 @@
     button {
       margin-top: 20px;
       padding: 10px 20px;
-      font-size: 16px;
+      font-size: 20px;
       background-color: white;
       color: #0033a0;
       border: none;
@@ -77,11 +80,11 @@
 
     let recomendacion = "";
     if (total >= 20) {
-      recomendacion = "✅ Vender a tercero especializado. El equipo tiene alto valor y condiciones para su reutilización directa.";
+      recomendacion = " Vender a tercero especializado. El equipo tiene alto valor y condiciones para su reutilización directa.";
     } else if (total >= 13) {
-      recomendacion = "🔧 Vender como refacciones. Aunque no está en óptimas condiciones, puede aprovecharse por partes.";
+      recomendacion = " Vender como refacciones. Aunque no está en óptimas condiciones, puede aprovecharse por partes.";
     } else {
-      recomendacion = "❌ No recomendable para venta. El equipo no cumple con las condiciones mínimas para venta segura o rentable.";
+      recomendacion = " No recomendable para venta. El equipo no cumple con las condiciones mínimas para venta segura o rentable.";
     }
 
     const mensajeHTML = `
@@ -101,43 +104,98 @@
     document.getElementById("resultado").innerHTML = mensajeHTML;
 
     async function generarPDF() {
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
 
-      let y = 10;
-      doc.setFont("Times", "normal");
-      doc.setFontSize(14);
-      doc.text("Resultado de la Evaluación", 105, y, { align: "center" });
-      y += 10;
+  const margenIzq = 10;
+  const margenDer = 200;
+  const anchoTexto = margenDer - margenIzq;
+  let y = 10;
+  const saltoLinea = 8;
 
-      doc.setFontSize(12);
-      doc.text(`Puntaje total: ${total}/25`, 10, y); y += 10;
-      doc.text(`Recomendación:`, 10, y); y += 10;
+  // Título
+  doc.setFont("Times", "bold");
+  doc.setFontSize(16);
+  doc.text("Resultado de la Evaluación", 105, y, { align: "center" });
+  y += 12;
 
-      // Dividir recomendación larga
-      const splitText = doc.splitTextToSize(recomendacion, 180);
-      doc.text(splitText, 10, y); y += splitText.length * 10;
+  // Puntaje
+  doc.setFont("Times", "normal");
+  doc.setFontSize(12);
+  doc.text(`Puntaje total: ${total}/25`, margenIzq, y);
+  y += saltoLinea;
 
-      const detalles = [
-        `Funcionalidad: ${datos.funcional}`,
-        `Vida útil: ${datos.vida}`,
-        `Costo de reparación: ${datos.costo}`,
-        `Refacciones disponibles: ${datos.refacciones}`,
-        `Demanda en mercado: ${datos.demanda}`,
-        `Soporte documental: ${datos.soporte}`,
-        `Historial de mantenimiento: ${datos.mantenimiento}`,
-      ];
+  // Recomendación
+  doc.setFont("Times", "bold");
+  doc.text("Recomendación:", margenIzq, y);
+  y += saltoLinea;
 
-      detalles.forEach(item => {
-        doc.text(item, 10, y);
-        y += 10;
-      });
+  doc.setFont("Times", "normal");
+  const splitText = doc.splitTextToSize(recomendacion, anchoTexto);
 
-      // Abrir el PDF en nueva pestaña
-      window.open(doc.output("bloburl"), "_blank");
+  splitText.forEach(linea => {
+    if (y > 280) {  // Salto de página si no hay espacio
+      doc.addPage();
+      y = 10;
     }
+    doc.text(linea, margenIzq, y);
+    y += saltoLinea;
+  });
+
+  // Línea divisoria
+  y += 5;
+  if (y > 280) {
+    doc.addPage();
+    y = 10;
+  }
+  doc.setDrawColor(0);
+  doc.setLineWidth(0.3);
+  doc.line(margenIzq, y, margenDer, y);
+  y += 7;
+
+  // Detalles
+  doc.setFont("Times", "bold");
+  doc.text("Detalles del equipo:", margenIzq, y);
+  y += saltoLinea;
+
+  doc.setFont("Times", "normal");
+  const detalles = [
+    `Funcionalidad: ${datos.funcional}`,
+    `Vida útil: ${datos.vida}`,
+    `Costo de reparación: ${datos.costo}`,
+    `Refacciones disponibles: ${datos.refacciones}`,
+    `Demanda en mercado: ${datos.demanda}`,
+    `Soporte documental: ${datos.soporte}`,
+    `Historial de mantenimiento: ${datos.mantenimiento}`,
+  ];
+
+  detalles.forEach(item => {
+    if (y > 280) {
+      doc.addPage();
+      y = 10;
+    }
+    doc.text(item, margenIzq, y);
+    y += saltoLinea;
+  });
+  if (y < 230) {
+    y = 240; // Lo empujamos más abajo para que quede bien al final
+  } else {
+    doc.addPage();
+    y = 40;
+  }
+
+  doc.setFont("Times", "normal");
+  doc.line(60, y, 150, y);        // Línea para firma
+  doc.text("Nombre y Firma", 95, y + 6, { align: "center" });
+
+  // Mostrar el PDF
+  window.open(doc.output("bloburl"), "_blank");
+}
+
+
 
     window.generarPDF = generarPDF;
   </script>
 </body>
 </html>
+
