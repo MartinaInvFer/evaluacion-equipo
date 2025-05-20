@@ -143,6 +143,19 @@
       <option value="-5">No</option>
     </select>
 
+    <label>Nombre del equipo:</label>
+    <input type="text" id="nombreEquipo" required style="width: 100%; padding: 8px; font-size: 18px;">
+
+    <label>Marca:</label>
+    <input type="text" id="marca" required style="width: 100%; padding: 8px; font-size: 18px;">
+
+    <label>Modelo:</label>
+    <input type="text" id="modelo" required style="width: 100%; padding: 8px; font-size: 18px;">
+
+    <label>Foto del equipo:</label>
+    <input type="file" id="foto" accept="image/*" style="font-size: 18px;">
+
+
     <button onclick="guardarYRedirigir()">Evaluar</button>
     <div class="resultado" id="resultado"></div>
   </div>
@@ -194,7 +207,13 @@
     return;
   }
 
+  const fileInput = document.getElementById("foto");
+  const archivo = fileInput.files[0];
+
   const respuestas = {
+    nombreEquipo: document.getElementById("nombreEquipo").value,
+    marca: document.getElementById("marca").value,
+    modelo: document.getElementById("modelo").value,
     baja: document.getElementById("BajaDeEquipo").value,
     funcional: document.getElementById("funcional").value,
     vida: document.getElementById("VidaUtil").value,
@@ -204,9 +223,20 @@
     documentos: document.getElementById("documentos").value,
   };
 
-  localStorage.setItem("respuestasEvaluacion", JSON.stringify(respuestas));
-  window.location.href = "Results.html"; // Página de resultados
+  if (archivo) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      respuestas.foto = e.target.result; // base64
+      localStorage.setItem("respuestasEvaluacion", JSON.stringify(respuestas));
+      window.location.href = "Results.html";
+    };
+    reader.readAsDataURL(archivo);
+  } else {
+    localStorage.setItem("respuestasEvaluacion", JSON.stringify(respuestas));
+    window.location.href = "Results.html";
+  }
 }
+
 
 </script>
 
