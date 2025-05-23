@@ -6,30 +6,32 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      background-color: #0033a0; /* Fondo azul */
+      background-color: #0033a0;
       margin: 30px;
     }
+
     header {
-      background-color: #003787; /* Un azul más oscuro para la barra */
+      background-color: #003787;
       padding: 10px 0;
       text-align: center;
       border-radius: 10px;
-      max-width:100%;
+      max-width: 100%;
       margin: 0 auto 30px auto;
     }
+
     header img {
-      height: 140px; /* Ajusta tamaño del logo */
+      height: 140px;
       vertical-align: middle;
-      
     }
+
     h1 {
-      color: white;  /* Título en blanco */
+      color: white;
       text-align: center;
       margin-bottom: 40px;
       max-width: 600px;
       margin-left: auto;
       margin-right: auto;
-      font-family: Times New Roman;
+      font-family: 'Times New Roman', serif;
     }
 
     .formulario {
@@ -41,24 +43,22 @@
       margin: 0 auto;
       font-size: 20px;
     }
-    
+
     label, select {
       display: block;
       margin: 10px 0 5px;
-      font-size: 20px; /* Aumenta tamaño de etiqueta y select */
+      font-size: 20px;
     }
 
-    select {
+    select, input[type="text"] {
       width: 100%;
       padding: 8px;
-      font-size: 20px; /* Aumenta tamaño del texto en el select */
+      font-size: 20px;
     }
 
     option {
-      font-size: 20px; /* Aumenta tamaño del texto en las opciones */
+      font-size: 20px;
     }
-
-
 
     button {
       margin-top: 20px;
@@ -69,9 +69,20 @@
       border-radius: 5px;
       cursor: pointer;
     }
+
     .resultado {
       margin-top: 20px;
       font-weight: bold;
+      color: red;
+    }
+
+    .advertencia {
+      background-color: #fff3cd;
+      padding: 10px;
+      border-radius: 5px;
+      border: 1px solid #ffeeba;
+      margin-bottom: 20px;
+      font-size: 18px;
     }
   </style>
 </head>
@@ -82,18 +93,17 @@
     <h1>Evaluación para Venta de Equipos Médicos fuera de servicio o para baja</h1>
   </header>
 
-
-
   <div class="formulario">
-
-    ❗❗Advertencia❗❗ El equipo debe haberse dado de baja antes de contestar este formulario.
+    <div class="advertencia">
+      <strong>❗ Advertencia:</strong> El equipo debe haberse dado de baja antes de contestar este formulario.
+    </div>
 
     <label>¿El equipo médico ya fue dado de baja?</label>
     <select id="BajaDeEquipo">
       <option value="5">Sí</option>
       <option value="0">No</option>
     </select>
-    
+
     <label>¿Posterior a un análisis técnico, el equipo médico es funcional?</label>
     <select id="funcional">
       <option value="0">Selecciona una opción</option>
@@ -114,8 +124,8 @@
     <label>¿Es posible repararlo?</label>
     <select id="costo">
       <option value="0">Selecciona una opción</option>
-      <option value="2">Si, el costo de reparación es menor al 50% del valor en el mercado</option>  
-      <option value="1">Si, el costo supera el 50% del valor en el mercado</option>
+      <option value="2">Sí, el costo de reparación es menor al 50% del valor en el mercado</option>  
+      <option value="1">Sí, el costo supera el 50% del valor en el mercado</option>
       <option value="0">No</option>
     </select>
 
@@ -127,7 +137,7 @@
       <option value="0">No</option>
     </select>
 
-    <label>¿Hay demanda de este equipo en el mercado secundario (investigar)?</label>
+    <label>¿Hay demanda de este equipo en el mercado secundario?</label>
     <select id="demanda">
       <option value="0">Selecciona una opción</option>
       <option value="5">Alta</option>
@@ -144,101 +154,99 @@
     </select>
 
     <label>Nombre del equipo:</label>
-    <input type="text" id="nombreEquipo" required style="width: 100%; padding: 8px; font-size: 18px;">
+    <input type="text" id="nombreEquipo" required>
 
     <label>Marca:</label>
-    <input type="text" id="marca" required style="width: 100%; padding: 8px; font-size: 18px;">
+    <input type="text" id="marca" required>
 
     <label>Modelo:</label>
-    <input type="text" id="modelo" required style="width: 100%; padding: 8px; font-size: 18px;">
+    <input type="text" id="modelo" required>
 
     <label>Foto del equipo:</label>
-    <input type="file" id="foto" accept="image/*" style="font-size: 18px;">
-
+    <input type="file" id="foto" accept="image/*">
 
     <button onclick="guardarYRedirigir()">Evaluar</button>
     <div class="resultado" id="resultado"></div>
   </div>
 
- <script>
-  const camposEvaluacion = [
-    "funcional",
-    "VidaUtil",
-    "costo",
-    "refacciones",
-    "demanda",
-    "documentos",
-  ];
+  <script>
+    const camposEvaluacion = [
+      "funcional", "VidaUtil", "costo", "refacciones", "demanda", "documentos"
+    ];
 
-  document.getElementById("BajaDeEquipo").addEventListener("change", function () {
-    const valor = this.value;
-    const desactivar = valor === "0";
-    camposEvaluacion.forEach(id => {
-      document.getElementById(id).disabled = desactivar;
+    const funcionEvaluar = ["VidaUtil", "costo"];
+
+    document.getElementById("BajaDeEquipo").addEventListener("change", function () {
+      const desactivar = this.value === "0";
+      camposEvaluacion.forEach(id => {
+        document.getElementById(id).disabled = desactivar;
+      });
     });
-  });
 
-  const funcionEvaluar = [
-    "VidaUtil",
-    "costo",
-  ];
-
-  document.getElementById("funcional").addEventListener("change", function () {
-    const valor = this.value;
-    const desactivar = valor === "5"; // No o Parcialmente
-    funcionEvaluar.forEach(id => {
-      document.getElementById(id).disabled = desactivar;
+    document.getElementById("funcional").addEventListener("change", function () {
+      const desactivar = this.value === "5";
+      funcionEvaluar.forEach(id => {
+        document.getElementById(id).disabled = desactivar;
+      });
     });
-  });
 
+    document.getElementById("VidaUtil").addEventListener("change", function () {
+      const desactivar = this.value === "0";
+      document.getElementById("costo").disabled = desactivar;
+    });
 
-  document.getElementById("VidaUtil").addEventListener("change", function () {
-    const valor = this.value;
-    const desactivar = valor === "0"; 
-    document.getElementById("costo").disabled = desactivar;
-  
-  });
+    function guardarYRedirigir() {
+      if (document.getElementById("BajaDeEquipo").value === "0") {
+        document.getElementById("resultado").innerHTML =
+          "⚠️ <strong>Debe confirmar que el equipo fue dado de baja para continuar con la evaluación.</strong>";
+        return;
+      }
 
+      const camposRequeridos = [
+        "nombreEquipo", "marca", "modelo", "funcional",
+        "VidaUtil", "costo", "refacciones", "demanda", "documentos"
+      ];
 
-  function guardarYRedirigir() {
-  if (document.getElementById("funcional").disabled) {
-    document.getElementById("resultado").innerHTML =
-      "⚠️ <strong>Debe confirmar que el equipo fue dado de baja para continuar con la evaluación.</strong>";
-    return;
-  }
+      for (let campo of camposRequeridos) {
+        const valor = document.getElementById(campo).value;
+        if (!valor || valor === "0") {
+          document.getElementById("resultado").innerHTML =
+            "⚠️ <strong>Todos los campos deben ser completados antes de continuar.</strong>";
+          return;
+        }
+      }
 
-  const fileInput = document.getElementById("foto");
-  const archivo = fileInput.files[0];
+      const fileInput = document.getElementById("foto");
+      const archivo = fileInput.files[0];
 
-  const respuestas = {
-    nombreEquipo: document.getElementById("nombreEquipo").value,
-    marca: document.getElementById("marca").value,
-    modelo: document.getElementById("modelo").value,
-    baja: document.getElementById("BajaDeEquipo").value,
-    funcional: document.getElementById("funcional").value,
-    vida: document.getElementById("VidaUtil").value,
-    costo: document.getElementById("costo").value,
-    refacciones: document.getElementById("refacciones").value,
-    demanda: document.getElementById("demanda").value,
-    documentos: document.getElementById("documentos").value,
-  };
+      const respuestas = {
+        nombreEquipo: document.getElementById("nombreEquipo").value,
+        marca: document.getElementById("marca").value,
+        modelo: document.getElementById("modelo").value,
+        baja: document.getElementById("BajaDeEquipo").value,
+        funcional: document.getElementById("funcional").value,
+        vida: document.getElementById("VidaUtil").value,
+        costo: document.getElementById("costo").value,
+        refacciones: document.getElementById("refacciones").value,
+        demanda: document.getElementById("demanda").value,
+        documentos: document.getElementById("documentos").value,
+      };
 
-  if (archivo) {
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      respuestas.foto = e.target.result; // base64
-      localStorage.setItem("respuestasEvaluacion", JSON.stringify(respuestas));
-      window.location.href = "Results.html";
-    };
-    reader.readAsDataURL(archivo);
-  } else {
-    localStorage.setItem("respuestasEvaluacion", JSON.stringify(respuestas));
-    window.location.href = "Results.html";
-  }
-}
-
-
-</script>
+      if (archivo) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          respuestas.foto = e.target.result;
+          localStorage.setItem("respuestasEvaluacion", JSON.stringify(respuestas));
+          window.location.href = "Results.html";
+        };
+        reader.readAsDataURL(archivo);
+      } else {
+        localStorage.setItem("respuestasEvaluacion", JSON.stringify(respuestas));
+        window.location.href = "Results.html";
+      }
+    }
+  </script>
 
 </body>
 </html>
+
