@@ -77,7 +77,8 @@
     total += parseInt(datos.refacciones || 0);
     total += parseInt(datos.demanda || 0);
     total += parseInt(datos.documentos || 0);
-
+    total += parseInt(datos.criticidad || 0);
+    
     let recomendacion = "";
     if (total >= 20) {
       recomendacion = " Vender a tercero especializado. El equipo tiene alto valor y condiciones para su reutilización directa.";
@@ -97,6 +98,7 @@
         <li>Refacciones disponibles: ${datos.refacciones}</li>
         <li>Demanda en mercado: ${datos.demanda}</li>
         <li>Soporte documental: ${datos.documentos}</li>
+        <li>Criticidad: ${datos.criticidad}</li>
       </ul>
     `;
 
@@ -166,7 +168,7 @@ async function generarPDF() {
     `Refacciones disponibles: ${datos.refacciones}`,
     `Demanda en mercado: ${datos.demanda}`,
     `Soporte documental: ${datos.documentos}`,
-    `Historial de mantenimiento: ${datos.mantenimiento || "N/A"}`,
+    `Criticidad: ${datos. criticidad}`,
   ];
 
   detalles.forEach(item => {
