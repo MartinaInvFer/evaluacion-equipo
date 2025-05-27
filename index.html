@@ -215,15 +215,6 @@
       "VidaUtil", "costo", "refacciones", "demanda", "documentos", "critico"
     ];
 
-    for (let campo of camposRequeridos) {
-      const valor = document.getElementById(campo).value;
-      if (!valor || valor === "0") {
-        document.getElementById("resultado").innerHTML =
-          "⚠️ <strong>Todos los campos deben ser completados antes de continuar.</strong>";
-        return;
-      }
-    }
-
     const fileInput = document.getElementById("foto");
     const archivo = fileInput.files[0];
 
@@ -240,15 +231,6 @@
       documentos: document.getElementById("documentos").value,
       critico: document.getElementById("critico").value
     };
-
-    // 🚨 Validación crítica: Si es crítico y no tiene documentos
-    if (respuestas.critico === "3" && respuestas.documentos === "-5") {
-      respuestas.uso = "solo refacciones";
-      localStorage.setItem("respuestasEvaluacion", JSON.stringify(respuestas));
-      document.getElementById("resultado").innerHTML =
-        "⚠️ <strong>Este equipo es crítico y no cuenta con documentos. No puede ser vendido. Solo debe usarse para refacciones.</strong>";
-      return;
-    }
 
     // Si no es crítico sin documentos, continuar flujo normal
     if (archivo) {
