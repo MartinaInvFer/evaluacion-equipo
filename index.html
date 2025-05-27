@@ -231,19 +231,14 @@
       documentos: document.getElementById("documentos").value,
       critico: document.getElementById("critico").value
     };
-    
-    if (archivo) {
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      respuestas.foto = e.target.result; // base64
-      localStorage.setItem("respuestasEvaluacion", JSON.stringify(respuestas));
-      window.location.href = "Results.html";
-    };
-    reader.readAsDataURL(archivo);
-  } else {
-    localStorage.setItem("respuestasEvaluacion", JSON.stringify(respuestas));
+
+    // Guardar respuestas en sessionStorage
+    sessionStorage.setItem("respuestas", JSON.stringify(respuestas));
+
+    // Redirigir a Results.html
     window.location.href = "Results.html";
   }
+  
   }
 </script>
 
