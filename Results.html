@@ -79,12 +79,14 @@
     total += parseInt(datos.soporte || 0);
 
     let recomendacion = "";
-    if (total >= 20) {
-      recomendacion = " Vender a tercero especializado. El equipo tiene alto valor y condiciones para su reutilización directa.";
+    if (datos.critico === "sí" && parseInt(datos.documentos || 0) === 0) {
+      recomendacion = "❗ No vender. Usar solo para refacciones internas debido a su criticidad y falta de documentación.";
+    } else if (total >= 20) {
+      recomendacion = "Vender a tercero especializado. El equipo tiene alto valor y condiciones para su reutilización directa.";
     } else if (total >= 13) {
-      recomendacion = " Vender como refacciones. Aunque no está en óptimas condiciones, puede aprovecharse por partes.";
+      recomendacion = "Vender como refacciones. Aunque no está en óptimas condiciones, puede aprovecharse por partes.";
     } else {
-      recomendacion = " No recomendable para venta. El equipo no cumple con las condiciones mínimas para venta segura o rentable.";
+      recomendacion = "No recomendable para venta. El equipo no cumple con las condiciones mínimas para venta segura o rentable.";
     }
 
     let mensajeHTML = `
@@ -96,7 +98,8 @@
         <li>Costo de reparación: ${datos.costo}</li>
         <li>Refacciones disponibles: ${datos.refacciones}</li>
         <li>Demanda en mercado: ${datos.demanda}</li>
-        <li>Soporte documental: ${datos.documentos}</li>`;
+        <li>Soporte documental: ${datos.documentos}</li>
+        <li><strong>Crítico:</strong> ${datos.critico === "sí" ? "Sí" : "No"}</li>`;
 
     if (datos.uso) {
       mensajeHTML += `<li><strong>Uso autorizado:</strong> ${datos.uso}</li>`;
@@ -104,122 +107,110 @@
 
     mensajeHTML += `</ul>`;
 
-
     document.getElementById("resultado").innerHTML = mensajeHTML;
 
-async function generarPDF() {
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF();
+    async function generarPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
 
-  const margenIzq = 10;
-  const margenDer = 200;
-  const anchoTexto = margenDer - margenIzq;
-  let y = 10;
-  const saltoLinea = 8;
+      const margenIzq = 10;
+      const margenDer = 200;
+      const anchoTexto = margenDer - margenIzq;
+      let y = 10;
+      const saltoLinea = 8;
 
-  // Título en negritas y centrado
-  doc.setFont("Times", "bold");
-  doc.setFontSize(16);
-  doc.text("Resultado de la Evaluación", 105, y, { align: "center" });
-  y += 12;
+      doc.setFont("Times", "bold");
+      doc.setFontSize(16);
+      doc.text("Resultado de la Evaluación", 105, y, { align: "center" });
+      y += 12;
 
-  // Puntaje total
-  doc.setFont("Times", "normal");
-  doc.setFontSize(12);
-  doc.text(`Puntaje total: ${total}/25`, margenIzq, y);
-  y += saltoLinea;
+      doc.setFont("Times", "normal");
+      doc.setFontSize(12);
+      doc.text(`Puntaje total: ${total}/25`, margenIzq, y);
+      y += saltoLinea;
 
-  // Recomendación en negritas
-  doc.setFont("Times", "bold");
-  doc.text("Recomendación:", margenIzq, y);
-  y += saltoLinea;
+      doc.setFont("Times", "bold");
+      doc.text("Recomendación:", margenIzq, y);
+      y += saltoLinea;
 
-  // Recomendación normal con ajuste de texto
-  doc.setFont("Times", "normal");
-  const splitText = doc.splitTextToSize(recomendacion, anchoTexto);
-  splitText.forEach(linea => {
-    if (y > 280) {  // salto de página si falta espacio
-      doc.addPage();
-      y = 10;
+      doc.setFont("Times", "normal");
+      const splitText = doc.splitTextToSize(recomendacion, anchoTexto);
+      splitText.forEach(linea => {
+        if (y > 280) {
+          doc.addPage();
+          y = 10;
+        }
+        doc.text(linea, margenIzq, y);
+        y += saltoLinea;
+      });
+
+      y += 5;
+      if (y > 280) {
+        doc.addPage();
+        y = 10;
+      }
+      doc.setDrawColor(0);
+      doc.setLineWidth(0.3);
+      doc.line(margenIzq, y, margenDer, y);
+      y += 7;
+
+      doc.setFont("Times", "bold");
+      doc.text("Detalles del equipo:", margenIzq, y);
+      y += saltoLinea;
+
+      doc.setFont("Times", "normal");
+      const detalles = [
+        `Funcionalidad: ${datos.funcional}`,
+        `Vida útil: ${datos.vida}`,
+        `Costo de reparación: ${datos.costo}`,
+        `Refacciones disponibles: ${datos.refacciones}`,
+        `Demanda en mercado: ${datos.demanda}`,
+        `Soporte documental: ${datos.documentos}`,
+        `Crítico: ${datos.critico === "sí" ? "Sí" : "No"}`,
+        `Historial de mantenimiento: ${datos.mantenimiento || "N/A"}`
+      ];
+
+      if (datos.uso) {
+        detalles.push(`Uso autorizado: ${datos.uso}`);
+      }
+
+      detalles.forEach(item => {
+        if (y > 280) {
+          doc.addPage();
+          y = 10;
+        }
+        doc.text(item, margenIzq, y);
+        y += saltoLinea;
+      });
+
+      y += 10;
+
+      if (datos.foto) {
+        const imgWidth = 100;
+        const imgHeight = 80;
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const x = (pageWidth - imgWidth) / 2;
+
+        if (y + imgHeight > 280) {
+          doc.addPage();
+          y = 10;
+        }
+        doc.addImage(datos.foto, 'JPEG', x, y, imgWidth, imgHeight);
+        y += imgHeight + 10;
+      }
+
+      if (y > 230) {
+        doc.addPage();
+        y = 40;
+      } else {
+        y = 240;
+      }
+      doc.setFont("Times", "normal");
+      doc.line(60, y, 150, y);
+      doc.text("Nombre y Firma", 105, y + 6, { align: "center" });
+
+      window.open(doc.output("bloburl"), "_blank");
     }
-    doc.text(linea, margenIzq, y);
-    y += saltoLinea;
-  });
-
-  y += 5;
-
-  // Línea divisoria
-  if (y > 280) {
-    doc.addPage();
-    y = 10;
-  }
-  doc.setDrawColor(0);
-  doc.setLineWidth(0.3);
-  doc.line(margenIzq, y, margenDer, y);
-  y += 7;
-
-  // Detalles del equipo en negritas
-  doc.setFont("Times", "bold");
-  doc.text("Detalles del equipo:", margenIzq, y);
-  y += saltoLinea;
-
-  doc.setFont("Times", "normal");
-  const detalles = [
-    `Funcionalidad: ${datos.funcional}`,
-    `Vida útil: ${datos.vida}`,
-    `Costo de reparación: ${datos.costo}`,
-    `Refacciones disponibles: ${datos.refacciones}`,
-    `Demanda en mercado: ${datos.demanda}`,
-    `Soporte documental: ${datos.documentos}`,
-    `Historial de mantenimiento: ${datos.mantenimiento || "N/A"}`,
-  ];
-
-  if (datos.uso) {
-    detalles.push(`Uso autorizado: ${datos.uso}`);
-  }
-
-
-  detalles.forEach(item => {
-    if (y > 280) {
-      doc.addPage();
-      y = 10;
-    }
-    doc.text(item, margenIzq, y);
-    y += saltoLinea;
-  });
-
-  y += 10;
-
-  // Imagen centrada y sin corte
-  if (datos.foto) {
-    const imgWidth = 100;
-    const imgHeight = 80;
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const x = (pageWidth - imgWidth) / 2;
-
-    if (y + imgHeight > 280) {
-      doc.addPage();
-      y = 10;
-    }
-    doc.addImage(datos.foto, 'JPEG', x, y, imgWidth, imgHeight);
-    y += imgHeight + 10;
-  }
-
-  // Espacio para firma
-  if (y > 230) {
-    doc.addPage();
-    y = 40;
-  } else {
-    y = 240;
-  }
-  doc.setFont("Times", "normal");
-  doc.line(60, y, 150, y);        // Línea para firma
-  doc.text("Nombre y Firma", 105, y + 6, { align: "center" });
-
-  // Abrir el PDF en nueva pestaña
-  window.open(doc.output("bloburl"), "_blank");
-}
-
 
     window.generarPDF = generarPDF;
   </script>
