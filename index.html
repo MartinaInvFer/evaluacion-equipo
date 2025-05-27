@@ -143,6 +143,13 @@
       <option value="-5">No</option>
     </select>
 
+    <label>¿El equipo médico cuenta con documentos contables o de propiedad?</label>
+    <select id="EquipoCritico">
+      <option value="0">Selecciona una opción</option>
+      <option value="5">Sí</option>
+      <option value="-5">No</option>
+    </select>
+
     <label>Nombre del equipo:</label>
     <input type="text" id="nombreEquipo" required style="width: 100%; padding: 8px; font-size: 18px;">
 
@@ -221,6 +228,7 @@
     refacciones: document.getElementById("refacciones").value,
     demanda: document.getElementById("demanda").value,
     documentos: document.getElementById("documentos").value,
+    criticidad: document.getElementById("EquipoCritico").value,
   };
 
   if (archivo) {
