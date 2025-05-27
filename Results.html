@@ -87,7 +87,7 @@
       recomendacion = " No recomendable para venta. El equipo no cumple con las condiciones mínimas para venta segura o rentable.";
     }
 
-    const mensajeHTML = `
+    let mensajeHTML = `
       <p><strong>Puntaje total:</strong> ${total}/25</p>
       <p><strong>Recomendación:</strong> ${recomendacion}</p>
       <ul>
@@ -96,9 +96,14 @@
         <li>Costo de reparación: ${datos.costo}</li>
         <li>Refacciones disponibles: ${datos.refacciones}</li>
         <li>Demanda en mercado: ${datos.demanda}</li>
-        <li>Soporte documental: ${datos.documentos}</li>
-      </ul>
-    `;
+        <li>Soporte documental: ${datos.documentos}</li>`;
+
+    if (datos.uso) {
+      mensajeHTML += `<li><strong>Uso autorizado:</strong> ${datos.uso}</li>`;
+    }
+
+    mensajeHTML += `</ul>`;
+
 
     document.getElementById("resultado").innerHTML = mensajeHTML;
 
@@ -168,6 +173,11 @@ async function generarPDF() {
     `Soporte documental: ${datos.documentos}`,
     `Historial de mantenimiento: ${datos.mantenimiento || "N/A"}`,
   ];
+
+  if (datos.uso) {
+    detalles.push(`Uso autorizado: ${datos.uso}`);
+  }
+
 
   detalles.forEach(item => {
     if (y > 280) {
